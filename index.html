@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Painel Transportes</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+<style>
+    body { margin: 0; background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+    .header { background: linear-gradient(to right, #0b3eca 0%, #2563eb 30%, #ef4444 65%, #f71c1c 100%); border-bottom: 2px solid #ffffff; flex: 0 0 auto; }
+    .container { flex: 1 1 0; width: 100%; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; min-height: 0; }
+    .main { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; flex: 1; min-height: 0; }
+
+    .tv1 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; }
+    .card { background: #1e293b; padding: 10px; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; }
+    .big { font-size: clamp(20px, 3vw, 45px); font-weight: bold; }
+
+    .tv2, .tv3, .quadrante { background: #1e293b; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; min-height: 0; }
+
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th { background: #1e40af; padding: 6px; font-size: clamp(10px, 1.2vh, 13px); }
+    td { padding: 4px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: clamp(8px, 1vh, 12px); overflow: hidden; white-space: nowrap; }
+
+    .ok { color: #22c55e; font-weight: bold; }
+    .warn { color: #facc15; font-weight: bold; }
+    .bad { color: #ef4444; font-weight: bold; }
+
+    .quadrante-title { font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 5px; }
+    .chart-container { position: relative; flex-grow: 1; min-height: 0; }
+</style>
+</head>
+
+<body>
+
+<div class="header flex justify-between items-center px-6 py-2">
+    <div class="flex items-center gap-4">
+        <img src="https://www.grupocasasbahia.com.br/wp-content/uploads/2023/01/logo-gcb-horiz-alt-1024x108.png" 
+     alt="Logo Grupo Casas Bahia" 
+     style="height: 40px; background: white; padding: 5px 15px; border-radius: 20px;">
+        <span style="font-size:13px;letter-spacing:1px;">CONTROL CENTER | LIBERAÇÃO DE CARGAS</span>
+    </div>
+    <div style="text-align:right;">
+        <div id="data"></div>
+        <div id="hora" style="font-size:14px;font-weight:bold;"></div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="main">
+        <div class="tv1">
+            <div class="card">Total <div id="tTotal" class="big"></div></div>
+            <div class="card">Liberadas <div id="tLib" class="big text-green-400"></div></div>
+            <div class="card">% Liberados <div id="tPerc" class="big text-blue-400"></div></div>
+            <div class="card">Pendentes <div id="tPend" class="big text-red-400"></div></div>
+        </div>
+        <div class="tv2">
+            <div id="legendas" style="text-align:center; font-weight:bold; font-size:15px;">Cargas por Transportadora</div>
+            <div class="chart-container"><canvas id="donut"></canvas></div>
+        </div>
+        <div class="tv3">
+            <table>
+                <thead><tr><th>Transp.</th><th>Cargas</th><th>Lib</th><th>%</th></tr></thead>
+                <tbody id="tabela"></tbody>
+            </table>
+        </div>
+        <div class="tv4" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <div class="quadrante"><div class="quadrante-title">Tipo Operação</div><div class="chart-container"><canvas id="donutOperacao"></canvas></div></div>
+            <div class="quadrante"><div class="quadrante-title">Lib Atraso Portaria</div><div class="chart-container"><canvas id="donutPortaria"></canvas></div></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    setInterval(() => {
+        let d = new Date();
+        document.getElementById('data').innerText = d.toLocaleDateString("pt-BR");
+        document.getElementById('hora').innerText = d.toLocaleTimeString("pt-BR");
+    }, 1000);
+
+    let chart, opChart, portariaChart;
+    let ultimaVersao = "";
+
+    function atualizarPainel(dados){
+        dados = dados.filter(x => Number(x.cargas) > 0);
+        let total = dados.reduce((a,b) => a + Number(b.cargas || 0), 0);
+        let lib = dados.reduce((a,b) => a + Number(b.liberadas || 0), 0);
+
+        document.getElementById('tTotal').innerText = total;
+        document.getElementById('tLib').innerText = lib;
+        document.getElementById('tPend').innerText = total - lib;
+        document.getElementById('tPerc').innerText = total > 0 ? Math.round((lib/total)*100)+"%" : "0%";
+
+        montarTabela(dados);
+        montarBarra(dados);
+        montarOperacao(dados);
+        montarPortaria(dados);
+    }
+
+    function montarTabela(d){
+        const tabela = document.getElementById('tabela');
+        tabela.innerHTML = "";
+        d.forEach(x => {
+            let p = x.cargas > 0 ? Math.round((x.liberadas/x.cargas)*100) : 0;
+            let cor = p >= 80 ? "ok" : p >= 50 ? "warn" : "bad";
+            tabela.innerHTML += `<tr><td style="text-align:left">${x.nome}</td><td>${x.cargas}</td><td>${x.liberadas}</td><td class="${cor}">${p}%</td></tr>`;
+        });
+    }
+
+    function montarBarra(d){
+        d.sort((a,b) => b.cargas - a.cargas);
+        let totalCargas = d.reduce((sum, x) => sum + Number(x.cargas), 0);
+        
+        if(!chart){
+            chart = new Chart(document.getElementById('donut'), {
+                type: 'bar',
+                plugins: [ChartDataLabels],
+                data: { labels: d.map(x => x.nome), datasets: [{ data: d.map(x => x.cargas), backgroundColor: '#3b82f6' }] },
+                options: { 
+                    indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false, 
+                    plugins: { 
+                        legend: { display: false },
+                        datalabels: { anchor: 'end', align: 'right', color: '#ffffff', font: { weight: 'bold' }, formatter: (v) => (totalCargas > 0 ? ((v/totalCargas)*100).toFixed(1) + "%" : "0%") }
+                    }, 
+                    scales: { x: { ticks: { color: '#ffffff' }, max: Math.max(...d.map(x=>x.cargas), 1) * 1.2 }, y: { ticks: { color: '#ffffff', font: { size: 10 } }, grid: { display: false } } } 
+                }
+            });
+        } else {
+            chart.data.labels = d.map(x => x.nome);
+            chart.data.datasets[0].data = d.map(x => x.cargas);
+            chart.update();
+        }
+    }
+
+    const optionsDoughnut = {
+        responsive: true, maintainAspectRatio: false, animation: false, cutout: "60%",
+        plugins: {
+            legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 10 } },
+            datalabels: { color: '#ffffff', font: { weight: 'bold' }, formatter: (val, ctx) => {
+                let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                let pct = (val / sum * 100).toFixed(1);
+                return `${val} (${pct}%)`;
+            }}
+        }
+    };
+
+    function montarOperacao(d){
+        const listaDireta = ["SOUZA E CHIC", "ASAP", "CARRIERS", "BT TRANSPORTES", "BR SAMOR", "EC PEREIRA", "ALA CARGO", "CHÃO BRASIL DIRETA", "TAVARES"];
+        const listaPolo = ["ERIVALDO", "LUSIA", "JETTA", "CHÃO BRASIL", "VP LOG", "TWS"];
+        
+        let totalDireta = 0, totalPolo = 0;
+        d.forEach(x => {
+            if(listaDireta.includes(x.nome)) totalDireta += Number(x.cargas);
+            else if(listaPolo.includes(x.nome)) totalPolo += Number(x.cargas);
+        });
+
+        if(!opChart){
+            opChart = new Chart(document.getElementById('donutOperacao'), { type: 'doughnut', plugins: [ChartDataLabels], data: { labels: ["DIRETA", "POLO"], datasets: [{ data: [totalDireta, totalPolo], backgroundColor: ["#3b82f6", "#1e40af"], borderWidth: 0 }] }, options: optionsDoughnut });
+        } else { opChart.data.datasets[0].data = [totalDireta, totalPolo]; opChart.update(); }
+    }
+
+    function montarPortaria(d){
+        let portaria = d.filter(x => Number(x.saidaPortaria || 0) > 0);
+        if(!portariaChart){
+            portariaChart = new Chart(document.getElementById('donutPortaria'), { type: 'doughnut', plugins: [ChartDataLabels], data: { labels: portaria.map(x => x.nome), datasets: [{ data: portaria.map(x => x.saidaPortaria), backgroundColor: ["#3b82f6", "#60a5fa"], borderWidth: 0 }] }, options: optionsDoughnut });
+        } else { portariaChart.data.labels = portaria.map(x => x.nome); portariaChart.data.datasets[0].data = portaria.map(x => Number(x.saidaPortaria || 0)); portariaChart.update(); }
+    }
+
+    async function carregar(){
+        try {
+            let r = await fetch("dados.json?" + new Date().getTime());
+            let dados = await r.json();
+            if(JSON.stringify(dados) !== ultimaVersao){ ultimaVersao = JSON.stringify(dados); atualizarPainel(dados); }
+        } catch(e) { console.log("Aguardando dados..."); }
+    }
+    carregar();
+    setInterval(carregar, 10000);
+</script>
+</body>
+</html>
