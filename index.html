@@ -189,7 +189,7 @@
     async function carregar(){
         try {
         let r = await fetch(
-  "https://cdn.jsdelivr.net/gh/Denilsonvia/painel-de-liberacao@main/dados.json?v=" + Date.now()
+  "https://raw.githubusercontent.com/Denilsonvia/painel-de-liberacao/main/dados.json?v=" + Date.now()
 );
             let dados = await r.json();
             if(JSON.stringify(dados) !== ultimaVersao){ ultimaVersao = JSON.stringify(dados); atualizarPainel(dados); }
