@@ -190,7 +190,7 @@
 
     async function carregar(){
     try {
-        let r = await fetch("https://cdn.githubusercontent.com/transportevia/painel-de-liberacao/main/dados.json?v=" + Date.now());
+        let r = await fetch("https://raw.githubusercontent.com/transportevia/painel-de-liberacao/main/dados.json?v=" + Date.now());
         let dados = await r.json();
         if(JSON.stringify(dados) !== ultimaVersao){
             ultimaVersao = JSON.stringify(dados);
