@@ -1,66 +1,87 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel Transportes</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Transportes - 3D Professional</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 
-<style>
-    body { margin: 0; background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; height: 100vh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; }
-    .header { background: linear-gradient(to right, #0b3eca 0%, #2563eb 30%, #ef4444 65%, #f71c1c 100%); border-bottom: 2px solid #ffffff; flex: 0 0 auto; }
-    
-    /* Container principal agora ocupa todo o espaço restante */
-    .container {  max-width: 100vw; margin: 0 auto; flex: 1; width: 100%; padding: 10px; box-sizing: border-box; display: flex; flex-direction: column; min-height: 0; }
-    
-    /* Grid forçado a preencher o espaço com fr (frações) */
-    .main{
-    display:grid;
-    grid-template-columns:49% 49%;
-    justify-content:space-between;
-    gap:15px 30px;
-    width:100%;
-    height:100%;
+    <style>
+        /* Splash Screen */
+        #splash { position: fixed; inset: 0; background: #0f172a; display: flex; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.8s ease; }
+        .pulse-logo { width: 300px; animation: heartbeat 1.5s ease-in-out infinite; }
+        @keyframes heartbeat { 0%, 100% { transform: scale(1); filter: brightness(1); } 50% { transform: scale(1.05); filter: brightness(1.3); } }
 
-}
+        body { margin: 0; background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; height: 100vh; width: 100vw; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .header { background: linear-gradient(to right, #0b3eca 0%, #2563eb 30%, #ef4444 65%, #f71c1c 100%); border-bottom: 2px solid #ffffff; flex: 0 0 auto; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        
+        .container { max-width: 100vw; margin: 0 auto; flex: 1; width: 100%; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column; min-height: 0; }
+        
+        .main { 
+            display: grid; 
+            grid-template-columns: 49% 49%; 
+            grid-template-rows: 48% 48%; 
+            justify-content: space-between; 
+            align-content: center; 
+            gap: 15px 30px; 
+            width: 100%; 
+            height: 100%; 
+        }
 
-    .tv1 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; }
-    .card { background: #1e293b; padding: 10px; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
-    .big { font-size: clamp(20px, 3vw, 45px); font-weight: bold; }
+        .card, .tv2, .tv3, .quadrante { 
+            background: #1e293b; 
+            border-radius: 12px; 
+            padding: 15px; 
+            display: flex; flex-direction: column; justify-content: center;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            border-left: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 10px 10px 20px rgba(0,0,0,0.5), -5px -5px 10px rgba(255,255,255,0.02);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
 
-    .tv2, .tv3, .quadrante { background: #1e293b; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; min-height: 0; }
+        .card:hover, .tv2:hover, .tv3:hover, .quadrante:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 15px 20px 30px rgba(0,0,0,0.6), -5px -5px 10px rgba(255,255,255,0.05);
+            background: #253347;
+        }
 
-    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    th { background: #1e40af; padding: 6px; font-size: clamp(10px, 1.2vh, 13px); }
-    td { padding: 4px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: clamp(8px, 1vh, 12px); overflow: hidden; white-space: nowrap; }
+        .tv1 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px; }
+        .big { font-size: clamp(20px, 3vw, 45px); font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
 
-    .ok { color: #22c55e; font-weight: bold; }
-    .warn { color: #facc15; font-weight: bold; }
-    .bad { color: #ef4444; font-weight: bold; }
+        /* Tabela Ajustada sem Barra */
+        .tv3 { padding: 10px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: rgba(30, 64, 175, 0.8); padding: 6px; font-size: 11px; }
+        td { padding: 4px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; }
 
-    .quadrante-title { font-size: 15px; font-weight: bold; text-align: center; margin-bottom: 5px; }
-    .chart-container { position: relative; flex-grow: 1; min-height: 0; width: 100%; }
+        .ok { color: #22c55e; font-weight: bold; }
+        .warn { color: #facc15; font-weight: bold; }
+        .bad { color: #ef4444; font-weight: bold; }
 
-    /* Ajuste para Celular */
-    @media (max-width: 768px) {
-        body { overflow-y: auto; height: auto; }
-        .container { height: auto; }
-        .main { grid-template-columns: 1fr; grid-template-rows: auto; gap: 10px; }
-        .tv1 { grid-template-columns: 1fr 1fr; }
-        .tv4 { display: grid; grid-template-columns: 1fr; }
-    }
-</style>
+        .quadrante-title { font-size: 14px; font-weight: bold; text-align: center; margin-bottom: 10px; color: #cbd5e1; }
+        .chart-container { position: relative; flex-grow: 1; min-height: 0; width: 100%; }
+
+        @media (max-width: 768px) {
+            body { overflow-y: auto; height: auto; }
+            .container { height: auto; }
+            .main { grid-template-columns: 1fr; gap: 15px; grid-template-rows: auto; }
+        }
+    </style>
 </head>
 
 <body>
 
+<div id="splash">
+    <img src="https://www.grupocasasbahia.com.br/wp-content/uploads/2023/01/logo-gcb-horiz-alt-1024x108.png" class="pulse-logo">
+</div>
+
 <div class="header flex justify-between items-center px-6 py-2">
     <div class="flex items-center gap-4">
-        <img src="https://www.grupocasasbahia.com.br/wp-content/uploads/2023/01/logo-gcb-horiz-alt-1024x108.png" 
-             alt="Logo Grupo Casas Bahia" style="height: 40px; background: white; padding: 5px 15px; border-radius: 20px;">
-        <span style="font-size:13px;letter-spacing:1px;">CONTROL CENTER | LIBERAÇÃO DE CARGAS</span>
+        <img src="https://www.grupocasasbahia.com.br/wp-content/uploads/2023/01/logo-gcb-horiz-alt-1024x108.png" style="height: 40px; background: white; padding: 5px 15px; border-radius: 20px;">
+        <span style="font-size:13px;letter-spacing:1px; font-weight:600;">CONTROL CENTER | LIBERAÇÃO DE CARGAS</span>
     </div>
     <div style="text-align:right;">
         <div id="data"></div>
@@ -77,7 +98,7 @@
             <div class="card">Pendentes <div id="tPend" class="big text-red-400"></div></div>
         </div>
         <div class="tv2">
-            <div id="legendas" style="text-align:center; font-weight:bold; font-size:15px;">Cargas por Transportadora</div>
+            <div style="text-align:center; font-weight:bold; font-size:15px; margin-bottom: 5px;">Cargas por Transportadora</div>
             <div class="chart-container"><canvas id="donut"></canvas></div>
         </div>
         <div class="tv3">
@@ -86,7 +107,7 @@
                 <tbody id="tabela"></tbody>
             </table>
         </div>
-        <div class="tv4" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+        <div class="tv4" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
             <div class="quadrante"><div class="quadrante-title">Tipo Operação</div><div class="chart-container"><canvas id="donutOperacao"></canvas></div></div>
             <div class="quadrante"><div class="quadrante-title">Lib Atraso Portaria</div><div class="chart-container"><canvas id="donutPortaria"></canvas></div></div>
         </div>
@@ -94,6 +115,11 @@
 </div>
 
 <script>
+    window.onload = () => setTimeout(() => {
+        document.getElementById('splash').style.opacity = '0';
+        setTimeout(() => document.getElementById('splash').remove(), 800);
+    }, 2000);
+
     setInterval(() => {
         let d = new Date();
         document.getElementById('data').innerText = d.toLocaleDateString("pt-BR");
@@ -189,15 +215,15 @@
     }
 
     async function carregar(){
-    try {
-        let r = await fetch("https://raw.githubusercontent.com/transportevia/painel-de-liberacao/main/dados.json?v=" + Date.now());
-        let dados = await r.json();
-        if(JSON.stringify(dados) !== ultimaVersao){
-            ultimaVersao = JSON.stringify(dados);
-            atualizarPainel(dados);
-        }
-    } catch(e) { console.error("Erro:", e); }
-}
+        try {
+            let r = await fetch("https://raw.githubusercontent.com/transportevia/painel-de-liberacao/main/dados.json?v=" + Date.now());
+            let dados = await r.json();
+            if(JSON.stringify(dados) !== ultimaVersao){
+                ultimaVersao = JSON.stringify(dados);
+                atualizarPainel(dados);
+            }
+        } catch(e) { console.error("Erro:", e); }
+    }
     carregar();
     setInterval(carregar, 10000);
 </script>
