@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Transportes - Liberação</title>
+    
+    <!-- Configurações para Instalação como Aplicativo (PWA) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Liberação">
+    <link rel="apple-touch-icon" href="https://www.grupocasasbahia.com.br/wp-content/uploads/2023/09/logo-gcb-blue-alt.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
@@ -49,7 +58,6 @@
         .tv1 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px; }
         .big { font-size: clamp(24px, 3.5vw, 48px); font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); line-height: 1; }
         
-        /* Estilização das legendas inferiores e caixas de ícones dos Cards */
         .card-label { font-size: 12px; color: #94a3b8; font-weight: 500; margin-top: 2px; }
         .icon-container { display: flex; items-center: center; justify-content: center; width: 44px; height: 44px; border-radius: 10px; }
         
@@ -188,6 +196,13 @@
 </div>
 
 <script>
+    // Registro do Service Worker para PWA (Aplicativo)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+          .then(() => console.log('Service Worker Registrado!'))
+          .catch((err) => console.log('Erro no Service Worker:', err));
+    }
+
     // Gerenciamento do Splash (apenas no primeiro acesso)
     window.onload = () => {
         if (localStorage.getItem('splashExibido')) {
@@ -227,30 +242,27 @@
         atualizarCoresGraficos();
     });
 
-    // Controla a cor do gráfico de barras (TV2)
     function obterCorTextoBarra() {
         return document.body.classList.contains('light-mode') ? '#000000' : '#ffffff';
     }
 
-    // Força as legendas de baixo a mudarem de cor conforme o tema para não sumirem
     function obterCorLegendaRosca() {
         return document.body.classList.contains('light-mode') ? '#000000' : '#ffffff';
     }
 
-    // Mantém estritamente os números de dentro das roscas brancos
     function obterCorTextoRosca() {
         return '#ffffff';
     }
 
     function atualizarCoresGraficos() {
-        const corTextoBarra = obterCorTextoBarra();
+        const colorTextoBarra = obterCorTextoBarra();
         const corLegendaRosca = obterCorLegendaRosca();
         const corTextoRosca = obterCorTextoRosca();
         
         if (chart) {
-            chart.options.plugins.datalabels.color = corTextoBarra;
-            chart.options.scales.x.ticks.color = corTextoBarra;
-            chart.options.scales.y.ticks.color = corTextoBarra;
+            chart.options.plugins.datalabels.color = colorTextoBarra;
+            chart.options.scales.x.ticks.color = colorTextoBarra;
+            chart.options.scales.y.ticks.color = colorTextoBarra;
             chart.update();
         }
         if (opChart) {
@@ -294,7 +306,7 @@
     function montarBarra(d){
         d.sort((a,b) => b.cargas - a.cargas);
         let totalCargas = d.reduce((sum, x) => sum + Number(x.cargas), 0);
-        const corTextoBarra = obterCorTextoBarra();
+        const colorTextoBarra = obterCorTextoBarra();
         
         if(!chart){
             chart = new Chart(document.getElementById('donut'), {
@@ -304,17 +316,17 @@
                     indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false, 
                     plugins: { 
                         legend: { display: false },
-                        datalabels: { anchor: 'end', align: 'right', color: corTextoBarra, font: { weight: 'bold' }, formatter: (v) => (totalCargas > 0 ? ((v/totalCargas)*100).toFixed(1) + "%" : "0%") }
+                        datalabels: { anchor: 'end', align: 'right', color: colorTextoBarra, font: { weight: 'bold' }, formatter: (v) => (totalCargas > 0 ? ((v/totalCargas)*100).toFixed(1) + "%" : "0%") }
                     }, 
-                    scales: { x: { ticks: { color: corTextoBarra }, max: Math.max(...d.map(x=>x.cargas), 1) * 1.2 }, y: { ticks: { color: corTextoBarra, font: { size: 10 } }, grid: { display: false } } } 
+                    scales: { x: { ticks: { color: colorTextoBarra }, max: Math.max(...d.map(x=>x.cargas), 1) * 1.2 }, y: { ticks: { color: colorTextoBarra, font: { size: 10 } }, grid: { display: false } } } 
                 }
             });
         } else {
             chart.data.labels = d.map(x => x.nome);
             chart.data.datasets[0].data = d.map(x => x.cargas);
-            chart.options.plugins.datalabels.color = corTextoBarra;
-            chart.options.scales.x.ticks.color = corTextoBarra;
-            chart.options.scales.y.ticks.color = corTextoBarra;
+            chart.options.plugins.datalabels.color = colorTextoBarra;
+            chart.options.scales.x.ticks.color = colorTextoBarra;
+            chart.options.scales.y.ticks.color = colorTextoBarra;
             chart.update();
         }
     }
@@ -365,6 +377,7 @@
         }
     }
 
+    // CONFIGURADO: Mantido o RAW original estável com o cache buster dinâmico (?v=)
     async function carregar(){
         try {
             let r = await fetch("https://raw.githubusercontent.com/transportevia/painel-de-liberacao/main/dados.json?v=" + Date.now());
