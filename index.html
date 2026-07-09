@@ -49,6 +49,7 @@
         .tv1 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 15px; }
         .big { font-size: clamp(24px, 3.5vw, 48px); font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); line-height: 1; }
         
+        /* Estilização das legendas inferiores e caixas de ícones dos Cards */
         .card-label { font-size: 12px; color: #94a3b8; font-weight: 500; margin-top: 2px; }
         .icon-container { display: flex; items-center: center; justify-content: center; width: 44px; height: 44px; border-radius: 10px; }
         
@@ -81,6 +82,7 @@
         body.light-mode td:not(.ok):not(.warn):not(.bad) { color: #000000 !important; }
         body.light-mode .tv2 div { color: #000000 !important; }
 
+        /* Ajustes Mobile Finos */
         @media (max-width: 768px) { 
             body { overflow-y: auto; height: auto; } 
             .header { flex-direction: column; gap: 8px; padding: 10px; text-align: center; }
@@ -129,7 +131,6 @@
 <div class="container">
     <div class="main">
         <div class="tv1">
-            <!-- Card 1: Total de Cargas -->
             <div class="card flex-row items-center justify-between px-5">
                 <div>
                     <div style="font-weight: 600; font-size: 14px; color: #94a3b8;">Total de Cargas</div>
@@ -139,7 +140,6 @@
                 <div class="icon-container bg-blue-500/10 text-blue-500 text-2xl items-center flex">🚚</div>
             </div>
 
-            <!-- Card 2: Liberadas -->
             <div class="card flex-row items-center justify-between px-5">
                 <div>
                     <div style="font-weight: 600; font-size: 14px; color: #94a3b8;">Liberadas</div>
@@ -149,7 +149,6 @@
                 <div class="icon-container bg-green-500/10 text-green-500 text-2xl items-center flex">✅</div>
             </div>
 
-            <!-- Card 3: % Liberados -->
             <div class="card flex-row items-center justify-between px-5">
                 <div>
                     <div style="font-weight: 600; font-size: 14px; color: #94a3b8;">% Liberados</div>
@@ -159,7 +158,6 @@
                 <div class="icon-container bg-indigo-500/10 text-indigo-400 text-2xl items-center flex">📊</div>
             </div>
 
-            <!-- Card 4: Pendentes -->
             <div class="card flex-row items-center justify-between px-5">
                 <div>
                     <div style="font-weight: 600; font-size: 14px; color: #94a3b8;">Pendentes</div>
@@ -190,6 +188,7 @@
 </div>
 
 <script>
+    // Gerenciamento do Splash (apenas no primeiro acesso)
     window.onload = () => {
         if (localStorage.getItem('splashExibido')) {
             document.getElementById('splash').style.display = 'none';
@@ -228,14 +227,17 @@
         atualizarCoresGraficos();
     });
 
+    // Controla a cor do gráfico de barras (TV2)
     function obterCorTextoBarra() {
         return document.body.classList.contains('light-mode') ? '#000000' : '#ffffff';
     }
 
+    // Força as legendas de baixo a mudarem de cor conforme o tema para não sumirem
     function obterCorLegendaRosca() {
         return document.body.classList.contains('light-mode') ? '#000000' : '#ffffff';
     }
 
+    // Mantém estritamente os números de dentro das roscas brancos
     function obterCorTextoRosca() {
         return '#ffffff';
     }
@@ -363,10 +365,9 @@
         }
     }
 
-    // NOVA FUNÇÃO CARREGAR CONFIGURADA COM CDN INSTANTÂNEA
     async function carregar(){
         try {
-            let r = await fetch("https://raw.jsdelivr.net/gh/transportevia/painel-de-liberacao@main/dados.json?v=" + Date.now());
+            let r = await fetch("https://raw.githubusercontent.com/transportevia/painel-de-liberacao/main/dados.json?v=" + Date.now());
             let dados = await r.json();
             if(JSON.stringify(dados) !== ultimaVersao){
                 ultimaVersao = JSON.stringify(dados);
