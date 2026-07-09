@@ -366,7 +366,7 @@
     // NOVA FUNÇÃO CARREGAR CONFIGURADA COM CDN INSTANTÂNEA
     async function carregar(){
         try {
-            let r = await fetch("https://cdn.jsdelivr.net/gh/transportevia/painel-de-liberacao@main/dados.json?v=" + Date.now());
+            let r = await fetch("https://raw.jsdelivr.net/gh/transportevia/painel-de-liberacao@main/dados.json?v=" + Date.now());
             let dados = await r.json();
             if(JSON.stringify(dados) !== ultimaVersao){
                 ultimaVersao = JSON.stringify(dados);
