@@ -123,6 +123,14 @@
             box-sizing: border-box;
         }
 
+        /* Estrutura do card em modo linha para facilitar flexibilidade */
+        .card-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
         /* TV 1: Grid dos 4 Cards */
         .tv1 { 
             display: grid; 
@@ -166,7 +174,7 @@
         .quadrante-title { font-size: 14px; font-weight: bold; text-align: center; margin-bottom: 6px; color: #ffffff; transition: color 0.3s; width: 100%; }
         .chart-container { position: relative; flex-grow: 1; min-height: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
 
-        /* --- CORES MODO CLARO (CORRIGIDO) --- */
+        /* --- CORES MODO CLARO --- */
         body.light-mode { background: #f8fafc; color: #000000; }
         body.light-mode .card, body.light-mode .tv2, body.light-mode .tv3, body.light-mode .quadrante { background: #ffffff; border-color: rgba(0,0,0,0.1); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
         body.light-mode .big { text-shadow: none; }
@@ -176,7 +184,7 @@
         body.light-mode .card-label { color: #64748b !important; }
         body.light-mode .quadrante-title { color: #000000 !important; }
         
-        /* Cores dos Números Grandes no Modo Claro (Preservadas!) */
+        /* Cores dos Números Grandes no Modo Claro */
         body.light-mode #tTotal { color: #000000 !important; }
         body.light-mode .text-green-400 { color: #22c55e !important; }
         body.light-mode .text-blue-400 { color: #3b82f6 !important; }
@@ -188,12 +196,13 @@
         body.light-mode td:not(.ok):not(.warn):not(.bad) { color: #000000 !important; }
         body.light-mode .tv2 div { color: #000000 !important; }
 
-        /* RESPONSIVIDADE MOBILE */
+        /* RESPONSIVIDADE MOBILE ALTERADA CONFORME A FOTO */
         @media (max-width: 1024px) {
             body { overflow-y: auto; height: auto; }
-            .header { height: auto; padding: 10px; flex-direction: column; gap: 8px; text-align: center; }
+            .header { height: auto; padding: 12px; flex-direction: column; gap: 4px; text-align: center; }
             .header div { text-align: center !important; }
             .container { height: auto; min-height: 100vh; overflow: visible; padding: 12px; }
+            
             .main { 
                 display: flex; 
                 flex-direction: column; 
@@ -201,25 +210,37 @@
                 height: auto; 
                 min-height: auto;
             }
+            
+            /* Mantém a TV1 em Grid 2x2 no mobile! */
             .tv1 {
-                display: flex;
-                flex-direction: column;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
                 gap: 12px;
                 height: auto;
             }
+            
+            /* Ajusta os cards para ficarem divididos horizontalmente como na foto */
             .card {
                 height: auto;
-                padding: 16px;
-                flex-direction: column !important;
-                justify-content: center !important;
+                padding: 12px;
+                flex-direction: row !important;
+                justify-content: space-between !important;
                 align-items: center !important;
+                text-align: left !important;
             }
-            .card div { text-align: center !important; }
-            .card .big { text-align: center !important; font-size: 32px; }
-            .card-label { text-align: center !important; }
-            .tv2, .tv3 { height: 400px; }
+            .card-content {
+                align-items: flex-start !important;
+                width: auto;
+            }
+            .card div { text-align: left !important; }
+            .card .big { text-align: left !important; font-size: 28px; }
+            .card-title { text-align: left !important; font-size: 12px; }
+            .card-label { text-align: left !important; font-size: 11px; margin-top: 2px; }
+            .icon-container { margin-bottom: 0 !important; width: 40px; height: 40px; font-size: 1.25rem; }
+
+            .tv2, .tv3 { height: 380px; }
             .tv4 { display: flex !important; flex-direction: column; gap: 15px; height: auto; }
-            .quadrante { height: 300px; }
+            .quadrante { height: 280px; }
         }
     </style>
 </head>
@@ -259,31 +280,39 @@
         <!-- TV 1: Painel Geral Centralizado (Superior Esquerdo) -->
         <div class="tv1">
             <div class="card">
+                <div class="card-content">
+                    <div class="card-title">Total de Cargas</div>
+                    <div id="tTotal" class="big my-1">0</div>
+                    <div class="card-label">cargas</div>
+                </div>
                 <div class="icon-container bg-blue-500/10 text-blue-500 text-2xl">🚚</div>
-                <div class="card-title">Total de Cargas</div>
-                <div id="tTotal" class="big my-1">0</div>
-                <div class="card-label">cargas</div>
             </div>
 
             <div class="card">
+                <div class="card-content">
+                    <div class="card-title">Liberadas</div>
+                    <div id="tLib" class="big text-green-400 my-1">0</div>
+                    <div class="card-label">cargas</div>
+                </div>
                 <div class="icon-container bg-green-500/10 text-green-500 text-2xl">✅</div>
-                <div class="card-title">Liberadas</div>
-                <div id="tLib" class="big text-green-400 my-1">0</div>
-                <div class="card-label">cargas</div>
             </div>
 
             <div class="card">
+                <div class="card-content">
+                    <div class="card-title">% Liberados</div>
+                    <div id="tPerc" class="big text-blue-400 my-1">0%</div>
+                    <div class="card-label">taxa de liberação</div>
+                </div>
                 <div class="icon-container bg-indigo-500/10 text-indigo-400 text-2xl">📊</div>
-                <div class="card-title">% Liberados</div>
-                <div id="tPerc" class="big text-blue-400 my-1">0%</div>
-                <div class="card-label">taxa de liberação</div>
             </div>
 
             <div class="card">
+                <div class="card-content">
+                    <div class="card-title">Pendentes</div>
+                    <div id="tPend" class="big text-red-400 my-1">0</div>
+                    <div class="card-label">cargas</div>
+                </div>
                 <div class="icon-container bg-red-500/10 text-red-500 text-2xl">⏳</div>
-                <div class="card-title">Pendentes</div>
-                <div id="tPend" class="big text-red-400 my-1">0</div>
-                <div class="card-label">cargas</div>
             </div>
         </div>
 
@@ -342,10 +371,8 @@
         if (splash) splash.style.display = 'none';
     } else {
         document.addEventListener('DOMContentLoaded', () => {
-            // Tempo ajustado para 3.5 segundos (3500ms)
             setTimeout(ocultarSplash, 3500);
         });
-        // Margem de segurança de 5.5 segundos para conexões lentas
         setTimeout(ocultarSplash, 5500);
     }
 
